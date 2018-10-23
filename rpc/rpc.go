@@ -37,6 +37,8 @@ type RPC struct {
 	grpcWebServer *grpcweb.WrappedGrpcServer
 	actualServer  aergorpc.AergoRPCServiceServer
 	httpServer    *http.Server
+
+	ca types.ChainAccessor
 }
 
 //var _ component.IComponent = (*RPCComponent)(nil)
@@ -46,8 +48,6 @@ func NewRPC(hub *component.ComponentHub, cfg *config.Config, chainAccessor types
 	actualServer := &AergoRPCService{
 		hub:       hub,
 		msgHelper: message.GetHelper(),
-
-		ca: chainAccessor,
 	}
 	opts := []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(1024 * 1024 * 256),
@@ -187,6 +187,11 @@ func (ns *RPC) CallRequest(actor string, msg interface{}) (interface{}, error) {
 	future := ns.RequestToFuture(actor, msg, defaultTTL)
 
 	return future.Result()
+}
+
+// GetChainAccessor implment interface method of ActorService
+func (ns *RPC) GetChainAccessor() types.ChainAccessor {
+	return ns.ca
 }
 
 func convertError(err error) types.CommitStatus {

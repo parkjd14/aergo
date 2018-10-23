@@ -13,7 +13,6 @@ import (
 	"github.com/aergoio/aergo/message"
 	"github.com/aergoio/aergo/types"
 	"github.com/hashicorp/golang-lru"
-	"reflect"
 )
 
 type SyncManager interface {
@@ -23,8 +22,8 @@ type SyncManager interface {
 
 type syncManager struct {
 	logger *log.Logger
-	actor ActorService
-	pm PeerManager
+	actor  ActorService
+	pm     PeerManager
 
 	blkCache *lru.Cache
 	txCache  *lru.Cache
@@ -32,7 +31,7 @@ type syncManager struct {
 
 func newSyncManager(actor ActorService, pm PeerManager, logger *log.Logger) SyncManager {
 	var err error
-	sm := &syncManager{actor:actor, pm:pm, logger:logger}
+	sm := &syncManager{actor: actor, pm: pm, logger: logger}
 
 	sm.blkCache, err = lru.New(DefaultGlobalBlockCacheSize)
 	if err != nil {
@@ -61,22 +60,12 @@ func (sm *syncManager) HandleNewBlockNotice(peer RemotePeer, hashArr BlockHash, 
 	}
 
 	// request block info if selfnode does not have block already
-	rawResp, err := sm.actor.CallRequest(message.ChainSvc, &message.GetBlock{BlockHash: message.BlockHash(data.BlockHash)})
-	if err != nil {
-		sm.logger.Warn().Err(err).Msg("actor return error on getblock")
-		return
-	}
-	resp, ok := rawResp.(message.GetBlockRsp)
-	if !ok {
-		sm.logger.Warn().Str("expected", "message.GetBlockRsp").Str("actual", reflect.TypeOf(rawResp).Name()).Msg("chainservice returned unexpected type")
-		return
-	}
-	if resp.Err != nil {
+	foundBlock, _ := sm.actor.GetChainAccessor().GetBlock(data.BlockHash)
+	if foundBlock == nil {
 		sm.logger.Debug().Str(LogBlkHash, enc.ToString(data.BlockHash)).Str(LogPeerID, peerID.Pretty()).Msg("chainservice responded that block not found. request back to notifier")
 		sm.actor.SendRequest(message.P2PSvc, &message.GetBlockInfos{ToWhom: peerID,
 			Hashes: []message.BlockHash{message.BlockHash(data.BlockHash)}})
 	}
-
 }
 
 func (sm *syncManager) HandleNewTxNotice(peer RemotePeer, hashArrs []TxHash, data *types.NewTransactionsNotice) {
@@ -112,14 +101,14 @@ func txHashArrToString(bbarray []message.TXHash) string {
 	return txHashArrToStringWithLimit(bbarray, 10)
 }
 
-func txHashArrToStringWithLimit(bbarray []message.TXHash, limit int ) string {
+func txHashArrToStringWithLimit(bbarray []message.TXHash, limit int) string {
 	var buf bytes.Buffer
 	buf.WriteByte('[')
 	var arrSize = len(bbarray)
 	if limit > arrSize {
 		limit = arrSize
 	}
-	for i :=0; i < limit; i++ {
+	for i := 0; i < limit; i++ {
 		hash := bbarray[i]
 		buf.WriteByte('"')
 		buf.WriteString(enc.ToString([]byte(hash)))
@@ -127,7 +116,7 @@ func txHashArrToStringWithLimit(bbarray []message.TXHash, limit int ) string {
 		buf.WriteByte(',')
 	}
 	if arrSize > limit {
-		buf.WriteString(fmt.Sprintf(" (and %d more), ",  arrSize - limit))
+		buf.WriteString(fmt.Sprintf(" (and %d more), ", arrSize-limit))
 	}
 	buf.WriteByte(']')
 	return buf.String()
@@ -137,14 +126,14 @@ func txHashArrToStringWithLimit(bbarray []message.TXHash, limit int ) string {
 func P2PTxHashArrToString(bbarray []TxHash) string {
 	return P2PTxHashArrToStringWithLimit(bbarray, 10)
 }
-func P2PTxHashArrToStringWithLimit (bbarray []TxHash, limit int) string {
+func P2PTxHashArrToStringWithLimit(bbarray []TxHash, limit int) string {
 	var buf bytes.Buffer
 	buf.WriteByte('[')
 	var arrSize = len(bbarray)
 	if limit > arrSize {
 		limit = arrSize
 	}
-	for i :=0; i < limit; i++ {
+	for i := 0; i < limit; i++ {
 		hash := bbarray[i]
 		buf.WriteByte('"')
 		buf.WriteString(enc.ToString(hash[:]))
@@ -152,7 +141,7 @@ func P2PTxHashArrToStringWithLimit (bbarray []TxHash, limit int) string {
 		buf.WriteByte(',')
 	}
 	if arrSize > limit {
-		buf.WriteString(fmt.Sprintf(" (and %d more), ",  arrSize - limit))
+		buf.WriteString(fmt.Sprintf(" (and %d more), ", arrSize-limit))
 	}
 	buf.WriteByte(']')
 	return buf.String()

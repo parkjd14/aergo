@@ -27,8 +27,7 @@ const (
 	LogProtoID = "protocol_id"
 	LogMsgID   = "msg_id"
 	LogBlkHash = "blk_hash"
-	LogTxHash = "tx_hash"
-
+	LogTxHash  = "tx_hash"
 )
 
 // ActorService is collection of helper methods to use actor
@@ -41,6 +40,8 @@ type ActorService interface {
 	CallRequest(actor string, msg interface{}) (interface{}, error)
 	// FutureRequest send actor reqeust and get the Future object to get the state and return value of message
 	FutureRequest(actor string, msg interface{}) *actor.Future
+
+	GetChainAccessor() types.ChainAccessor
 }
 
 func extractBlockFromRequest(rawResponse interface{}, err error) (*types.Block, error) {
@@ -86,7 +87,7 @@ func extractTXsFromRequest(rawResponse interface{}, err error) ([]*types.Tx, err
 }
 
 func extractTXs(from *message.MemPoolGetRsp) ([]*types.Tx, error) {
-	if from.Err != nil{
+	if from.Err != nil {
 		return nil, from.Err
 	}
 	return from.Txs, nil
@@ -200,7 +201,7 @@ func bytesArrToStringWithLimit(bbarray [][]byte, limit int) string {
 	if limit > arrSize {
 		limit = arrSize
 	}
-	for i :=0; i < limit; i++ {
+	for i := 0; i < limit; i++ {
 		hash := bbarray[i]
 		buf.WriteByte('"')
 		buf.WriteString(enc.ToString(hash))
@@ -208,7 +209,7 @@ func bytesArrToStringWithLimit(bbarray [][]byte, limit int) string {
 		buf.WriteByte(',')
 	}
 	if arrSize > limit {
-		buf.WriteString(fmt.Sprintf(" (and %d more), ",  arrSize - limit))
+		buf.WriteString(fmt.Sprintf(" (and %d more), ", arrSize-limit))
 	}
 	buf.WriteByte(']')
 	return buf.String()
