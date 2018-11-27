@@ -58,6 +58,7 @@ func (ctx *ServerContext) GetDefaultBaseConfig() BaseConfig {
 		EnableRest:     false,
 		EnableTestmode: false,
 		Personal:       true,
+		EnablePlugins:  []string{},
 	}
 }
 

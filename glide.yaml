@@ -90,6 +90,7 @@ import:
 - package: github.com/funkygao/golib
   subpackages:
   - threadlocal
+- package: github.com/hashicorp/go-plugin
 testImport:
 - package: github.com/stretchr/testify
   subpackages:

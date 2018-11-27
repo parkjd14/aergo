@@ -32,6 +32,7 @@ type BaseConfig struct {
 	EnableRest     bool   `mapstructure:"enablerest" description:"enable rest port for testing"`
 	EnableTestmode bool   `mapstructure:"enabletestmode" description:"enable unsafe test mode"`
 	Personal       bool   `mapstructure:"personal" description:"enable personal account service"`
+	EnablePlugins  []string `mapstructure:"enableplugins" description:"array of paths to enabled plugins"`
 }
 
 // RPCConfig defines configurations for rpc service

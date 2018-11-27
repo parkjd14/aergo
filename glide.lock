@@ -1,5 +1,5 @@
-hash: 78db53e1f61004f4e3b33faa0789d9c2c2538cbfe4ddb331bfaf2424cf5cae8c
-updated: 2018-11-16T10:35:12.53870629+09:00
+hash: 4f0f89df112080de0d7446dca9cf2e3c18006455d661fd914dc88701ddb7a245
+updated: 2018-11-27T15:11:23.827449+09:00
 imports:
 - name: github.com/aergoio/aergo-actor
   version: b33acec1163b419b28c6a18e5e3f55f336fa7327
@@ -116,6 +116,10 @@ imports:
   version: d9f6b97f8db22dd1e090fd0bbbe98f09cc7dd0a8
   subpackages:
   - keccakpg
+- name: github.com/hashicorp/go-hclog
+  version: 61d530d6c27f994fb6c83b80f99a69c54125ec8a
+- name: github.com/hashicorp/go-plugin
+  version: 54b6ff97d8180dbbd93d2010dd4a92c86f604bb8
 - name: github.com/hashicorp/golang-lru
   version: 0fb14efe8c47ae851c0034ed7a448854d3d34cf3
   subpackages:
@@ -132,6 +136,8 @@ imports:
   - json/parser
   - json/scanner
   - json/token
+- name: github.com/hashicorp/yamux
+  version: 2f1d1f20f75d5404f53b9edf6b53ed5505508675
 - name: github.com/huin/goupnp
   version: 656e61dfadd241c7cbdd22a023fa81ecb6860ea8
   subpackages:
@@ -266,6 +272,8 @@ imports:
   version: 3f5f724cb5b182a5c278d6d3d55b40e7f8c2efb4
 - name: github.com/minio/sha256-simd
   version: ad98a36ba0da87206e3378c556abbfeaeaa98668
+- name: github.com/mitchellh/go-testing-interface
+  version: 6d0b8010fcc857872e42fc6c931227569016843c
 - name: github.com/mitchellh/mapstructure
   version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
 - name: github.com/mr-tron/base58
@@ -286,6 +294,8 @@ imports:
   version: a91e75d03bf4dba801af7b159c8b2aa7b5f47ea8
 - name: github.com/multiformats/go-multistream
   version: 2b032632ecab1e1b98c8d2391a4f6ab9a6c9e140
+- name: github.com/oklog/run
+  version: 6934b124db28979da51d3470dadfa34d73d72652
 - name: github.com/opentracing-contrib/go-observer
   version: a52f2342449246d5bcc273e65cbdcfa5f7d6c63c
 - name: github.com/opentracing/opentracing-go
@@ -329,7 +339,7 @@ imports:
 - name: github.com/rs/cors
   version: a3460e445dd310dbefee993fe449f2ff9c08ae71
 - name: github.com/rs/zerolog
-  version: 848482bc3dbeed6a47eb8f8cec0d4484795b1314
+  version: 8747b7b3a51b5d08ee7ac50eaf4869edaf9f714a
   subpackages:
   - internal/cbor
   - internal/json
@@ -472,6 +482,8 @@ imports:
   - encoding
   - encoding/proto
   - grpclog
+  - health
+  - health/grpc_health_v1
   - internal
   - internal/backoff
   - internal/channelz

@@ -5,6 +5,7 @@
 package main
 
 import (
+	"C"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
@@ -23,6 +24,7 @@ import (
 	"github.com/aergoio/aergo/mempool"
 	"github.com/aergoio/aergo/p2p"
 	"github.com/aergoio/aergo/pkg/component"
+	"github.com/aergoio/aergo/plugin"
 	rest "github.com/aergoio/aergo/rest"
 	"github.com/aergoio/aergo/rpc"
 	"github.com/aergoio/aergo/syncer"
@@ -163,6 +165,10 @@ func rootRun(cmd *cobra.Command, args []string) {
 		// Warning: The consensus service must start after all the other
 		// services.
 		consensus.Start(consensusSvc)
+	}
+
+	if len(cfg.EnablePlugins) > 0 {
+		plugin.LoadAndServePlugins(cfg.EnablePlugins)
 	}
 
 	common.HandleKillSig(func() {
