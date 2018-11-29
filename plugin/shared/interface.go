@@ -33,52 +33,17 @@ var PluginMap = map[string]plugin.Plugin{
 	"aergosvr": &AergosvrGrpcPlugin{},
 }
 
-// GRPCClient wraps the Impl so that the consumer does not have to deal with the GRPC details
-type GRPCClient struct {
-	client types.AergoPluginRPCServiceClient
-}
-
-func (m *GRPCClient) Init() error {
-	_, err := m.client.Init(context.Background(), &types.Empty{})
-	return err
-}
-
-func (m *GRPCClient) Receive(value []byte) ([]byte, error) {
-	resp, err := m.client.Receive(context.Background(), &types.SingleBytes{Value: value})
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Value, nil
-}
-
-// GRPCServer wraps the Impl so that the consumer does not have to deal with the GRPC details
-type GRPCServer struct {
-	Impl AergosvrInterface
-}
-
-func (m *GRPCServer) Init(
-	ctx context.Context,
-	empty *types.Empty) (*types.Empty, error) {
-	return &types.Empty{}, m.Impl.Init()
-}
-
-func (m *GRPCServer) Receive(
-	ctx context.Context,
-	input *types.SingleBytes) (*types.SingleBytes, error) {
-	v, err := m.Impl.Receive(input.Value)
-	return &types.SingleBytes{Value: v}, err
-}
-
 // AergosvrInterface is the interface that we're exposing as a plugin.
 type AergosvrInterface interface {
 	Init() error
+	Start(grpcServerPort uint32) error
+	Stop() error
 	Receive(input []byte) ([]byte, error)
 }
 
 // AergosvrGrpcPlugin is the implementation of plugin.GRPCPlugin so we can serve/consume this.
 type AergosvrGrpcPlugin struct {
-	plugin.Plugin
+	plugin.NetRPCUnsupportedPlugin
 	Impl AergosvrInterface
 }
 

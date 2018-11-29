@@ -168,7 +168,7 @@ func rootRun(cmd *cobra.Command, args []string) {
 	}
 
 	if len(cfg.EnablePlugins) > 0 {
-		plugin.LoadAndServePlugins(cfg.EnablePlugins)
+		plugin.LoadAndServePlugins(cfg.EnablePlugins, cfg.RPC.NetServicePort)
 	}
 
 	common.HandleKillSig(func() {
