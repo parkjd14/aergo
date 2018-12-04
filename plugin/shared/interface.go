@@ -11,7 +11,13 @@ import (
 )
 
 // ServePlugin is a shortcut for a plugin to serve its implementation of the AergosvrGrpc protocol
-func ServePlugin(impl interface{}) {
+func ServePlugin(definition AergoPluginDefinition, impl interface{}) {
+	var Handshake = plugin.HandshakeConfig{
+		ProtocolVersion:  1,
+		MagicCookieKey:   "BASIC_PLUGIN",
+		MagicCookieValue: definition.Name,
+	}
+
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: Handshake,
 		Plugins: map[string]plugin.Plugin{
@@ -21,22 +27,19 @@ func ServePlugin(impl interface{}) {
 	})
 }
 
-// Handshake is a common handshake that is shared by plugin and host.
-var Handshake = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
-	MagicCookieKey:   "BASIC_PLUGIN",
-	MagicCookieValue: "hello",
-}
-
-// PluginMap is the map of plugins we can dispense.
+// PluginMap is the map of plugin types we can dispense.
 var PluginMap = map[string]plugin.Plugin{
 	"aergosvr": &AergosvrGrpcPlugin{},
+}
+
+type AergoPluginDefinition struct {
+	Name string
 }
 
 // AergosvrInterface is the interface that we're exposing as a plugin.
 type AergosvrInterface interface {
 	Init() error
-	Start(grpcServerPort uint32) error
+	Start(client types.AergoRPCServiceClient) error
 	Stop() error
 	Receive(input []byte) ([]byte, error)
 }
@@ -49,7 +52,7 @@ type AergosvrGrpcPlugin struct {
 
 // GRPCServer returns the server to use for this plugin
 func (p *AergosvrGrpcPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
-	types.RegisterAergoPluginRPCServiceServer(s, &GRPCServer{Impl: p.Impl})
+	types.RegisterAergoPluginRPCServiceServer(s, &GRPCServer{Impl: p.Impl, server: s})
 	return nil
 }
 

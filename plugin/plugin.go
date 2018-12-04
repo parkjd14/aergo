@@ -3,6 +3,7 @@ package plugin
 import (
 	"os"
 	"os/exec"
+	"path"
 	"time"
 
 	"github.com/aergoio/aergo-lib/log"
@@ -12,9 +13,11 @@ import (
 )
 
 var logger *log.Logger
+var pluginInstances map[string]*shared.GRPCClient
 
 func init() {
 	logger = log.NewLogger("plugin")
+	pluginInstances = make(map[string]*shared.GRPCClient)
 }
 
 func loadAndServePlugin(pluginPath string, grpcServerPort int) {
@@ -26,8 +29,14 @@ func loadAndServePlugin(pluginPath string, grpcServerPort int) {
 		Output: os.Stdout,
 		Level:  hclog.Debug,
 	})
+	pluginName := path.Base(pluginPath) // TODO: document or find better way to pass plugin name
+	var Handshake = plugin.HandshakeConfig{
+		ProtocolVersion:  1,
+		MagicCookieKey:   "BASIC_PLUGIN",
+		MagicCookieValue: pluginName,
+	}
 	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig:  shared.Handshake,
+		HandshakeConfig:  Handshake,
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command("sh", "-c", pluginPath),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
@@ -59,20 +68,15 @@ func loadAndServePlugin(pluginPath string, grpcServerPort int) {
 		return
 	}
 
+	// Call Start function of plugin with aergo grpc port
 	err = pluginInstance.Start(uint32(grpcServerPort))
 	if err != nil {
 		logger.Error().Err(err).Msg("Could not start plugin")
 		return
 	}
 
-	result, err := pluginInstance.Receive([]byte{1})
-	if err != nil {
-		logger.Error().Err(err).Msg("Returned error")
-		return
-	}
-	logger.Info().Int("result", int(result[0])).Msg("Plugin returned result")
-
 	logger.Info().Str("path", pluginPath).Msg("Plugin is ready")
+	pluginInstances[pluginName] = pluginInstance
 
 	for {
 		time.Sleep(time.Minute)
@@ -83,5 +87,14 @@ func loadAndServePlugin(pluginPath string, grpcServerPort int) {
 func LoadAndServePlugins(pluginPaths []string, grpcServerPort int) {
 	for _, pluginPath := range pluginPaths {
 		go loadAndServePlugin(pluginPath, grpcServerPort)
+	}
+}
+
+func StopPlugins() {
+	for pluginName, pluginInstance := range pluginInstances {
+		err := pluginInstance.Stop()
+		if err != nil {
+			logger.Error().Err(err).Str("plugin", pluginName).Msg("Failed to stop plugin")
+		}
 	}
 }

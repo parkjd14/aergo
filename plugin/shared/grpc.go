@@ -3,8 +3,10 @@ package shared
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aergoio/aergo/types"
+	"google.golang.org/grpc"
 )
 
 // GRPCClient wraps the Impl so that the consumer does not have to deal with the GRPC details
@@ -40,7 +42,8 @@ func (m *GRPCClient) Receive(value []byte) ([]byte, error) {
 
 // GRPCServer wraps the Impl so that the consumer does not have to deal with the GRPC details
 type GRPCServer struct {
-	Impl AergosvrInterface
+	Impl   AergosvrInterface
+	server *grpc.Server
 }
 
 func (m *GRPCServer) Init(
@@ -52,12 +55,19 @@ func (m *GRPCServer) Init(
 func (m *GRPCServer) Start(
 	ctx context.Context,
 	pluginStartRequest *types.PluginStartRequest) (*types.Empty, error) {
-	return &types.Empty{}, m.Impl.Start(pluginStartRequest.GrpcServerPort)
+	serverAddr := fmt.Sprintf("%s:%d", "127.0.0.1", pluginStartRequest.GrpcServerPort)
+	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure())
+	if err != nil || conn == nil {
+		return &types.Empty{}, m.Impl.Start(nil)
+	}
+	client := types.NewAergoRPCServiceClient(conn)
+	return &types.Empty{}, m.Impl.Start(client)
 }
 
 func (m *GRPCServer) Stop(
 	ctx context.Context,
 	empty *types.Empty) (*types.Empty, error) {
+	m.server.Stop()
 	return &types.Empty{}, m.Impl.Stop()
 }
 

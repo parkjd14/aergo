@@ -172,6 +172,7 @@ func rootRun(cmd *cobra.Command, args []string) {
 	}
 
 	common.HandleKillSig(func() {
+		plugin.StopPlugins()
 		consensus.Stop(consensusSvc)
 		compMng.Stop()
 	}, svrlog)
